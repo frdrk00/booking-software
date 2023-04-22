@@ -29,10 +29,12 @@ const menu: FC<menuProps> = ({}) => {
   const [input, setInput] = useState<Input>(initialInput);
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { mutateAsync: deleteMenuItem} = api.admin.deleteMenuItem.useMutation()
 
   // tRPC
   const { mutateAsync: createPresignedUrl } = api.admin.createPresignedUrl.useMutation()
   const { mutateAsync: addItem } = api.admin.addMenuItem.useMutation()
+  const { data: menuItems, refetch } = api.menu.getMenuItems.useQuery()
 
   useEffect(() => {
     // create the preview
@@ -86,7 +88,18 @@ const menu: FC<menuProps> = ({}) => {
       categories: input.categories.map((c) => c.value as Exclude<Categories, 'all'>),
       price: input.price,
     })
+
+    refetch()
+
+    // Reset input
+    setInput(initialInput)
+    setPreview('')
   }
+
+  const handleDelete = async (imageKey: string, id: string) => {
+    await deleteMenuItem({ imageKey, id });
+    refetch();
+  };
 
   return (
     <>
@@ -97,7 +110,7 @@ const menu: FC<menuProps> = ({}) => {
             className="h-12 rounded-sm border-none bg-gray-200"
             type="text"
             placeholder="name"
-            onChange={handleTextChange}
+            onChange={(e) => setInput((prev) => ({ ...prev, name: e.target.value }))}
             value={input.name}
           />
 

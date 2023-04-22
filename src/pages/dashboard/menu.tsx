@@ -4,6 +4,8 @@ import { FC, useState, useEffect } from "react";
 import { selectOptions } from "~/utils/helpers";
 import { MultiValue } from "react-select/dist/declarations/src";
 import { MAX_FILE_SIZE } from "~/constants/config";
+import { api } from "~/utils/api";
+import { Categories } from "~/utils/types";
 
 const DynamicSelect = dynamic(() => import("react-select"), { ssr: false });
 
@@ -28,6 +30,10 @@ const menu: FC<menuProps> = ({}) => {
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  // tRPC
+  const { mutateAsync: createPresignedUrl } = api.admin.createPresignedUrl.useMutation()
+  const { mutateAsync: addItem } = api.admin.addMenuItem.useMutation()
+
   useEffect(() => {
     // create the preview
     if (!input.file) return;
@@ -43,6 +49,44 @@ const menu: FC<menuProps> = ({}) => {
     if (e.target.files[0].size > MAX_FILE_SIZE) return setError("File size is too big");
     setInput((prev) => ({ ...prev, file: e.target.files![0] }))
   };
+
+  const handleImageUpload = async () => {
+    const  { file } = input
+    if (!file) return
+
+    const { fields, key, url } = await createPresignedUrl({ fileType: file.type })
+
+    const data = {
+      ...fields,
+      'Content-Type': fields.type,
+      file
+    }
+
+    const formData = new FormData
+
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value as any)
+    })
+
+    await fetch(url, {
+      method: 'POST',
+      body: formData,
+    })
+
+    return key
+  }
+
+  const addMenuItem = async () => {
+    const key = await handleImageUpload()
+    if(!key) throw new Error('No key')
+
+    await addItem({
+      name: input.name,
+      imageKey: key,
+      categories: input.categories.map((c) => c.value as Exclude<Categories, 'all'>),
+      price: input.price,
+    })
+  }
 
   return (
     <>

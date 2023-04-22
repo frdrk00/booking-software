@@ -67,7 +67,7 @@ export const adminRouter = createTRPCRouter({
       name: z.string(),
       price: z.number(),
       imageKey: z.string(),
-      categories: z.array(z.union([z.literal('breakfast'), z.literal('luch'), z.literal('dinner')]))
+      categories: z.array(z.union([z.literal('breakfast'), z.literal('lunch'), z.literal('dinner')]))
     })
     )
     .mutation(async ({ctx, input}) => {

@@ -19,9 +19,10 @@ export const createTRPCContext = (_opts: CreateNextContextOptions) => {
   }
 };
 
-import { initTRPC } from "@trpc/server";
+import { TRPCError, initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { verifyAuth } from "~/lib/auth";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
@@ -37,5 +38,24 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
   },
 });
 
+const isAdmin = t.middleware(async ({ctx, next}) => {
+  const {req} = ctx
+  const token = req.cookies['user-token']
+
+  if(!token) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing user token' })
+  } 
+
+  const verifiedToken = await verifyAuth(token)
+
+  if(!verifiedToken) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Invalid user token' })
+  }
+
+  // user is authenticated as admin
+  return next()
+})
+
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
+export const adminProcedure = t.procedure.use(isAdmin)

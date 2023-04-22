@@ -3,7 +3,7 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 import cookie from 'cookie'
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { getJwtSecretKey } from "~/lib/auth";
 import { TRPCError } from "@trpc/server";
 
@@ -33,4 +33,8 @@ export const adminRouter = createTRPCRouter({
         message: 'Invalid email or password'
       })
     }),
+
+    sensitive: adminProcedure.mutation(() => {
+      return 'sensitive'
+    })
 });

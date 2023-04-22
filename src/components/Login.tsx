@@ -1,11 +1,10 @@
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { ChangeEvent, useState, type FC } from "react";
 import { HiLockClosed } from "react-icons/hi";
 import { api } from "~/utils/api";
 
 const Login: FC = () => {
-  const router = useRouter()
+  const router = useRouter();
 
   const [input, setInput] = useState({
     email: "",
@@ -19,8 +18,8 @@ const Login: FC = () => {
 
   const { mutate: login, isError } = api.admin.login.useMutation({
     onSuccess: () => {
-      router.push('/dashboard')
-    }
+      router.push("/dashboard");
+    },
   });
 
   return (

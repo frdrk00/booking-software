@@ -19,8 +19,9 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"],
-      "@types": ["src/utils/types"]
-    }
+      "@types": ["src/utils/types"],
+      "@lib/*": ["src/lib/*"]
+    },
   },
   "include": [
     ".eslintrc.cjs",

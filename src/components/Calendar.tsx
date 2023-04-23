@@ -1,25 +1,12 @@
-import { FC, Dispatch, SetStateAction, useState, useEffect } from "react";
-import ReactCalendar from "react-calendar";
-import {
-  add,
-  format,
-  formatISO,
-  isBefore,
-  roundToNearestMinutes,
-  parse,
-} from "date-fns";
-import {
-  INTERVAL,
-  STORE_CLOSING_TIME,
-  STORE_OPENING_TIME,
-} from "~/constants/config";
-import { type DateTime } from "@types";
+import type { Day } from "@prisma/client";
+import { format, formatISO, isBefore, parse } from "date-fns";
 import { useRouter } from "next/router";
+import { FC, useEffect, useState } from "react";
+import ReactCalendar from "react-calendar";
+import { OPENING_HOURS_INTERVAL, now } from "~/constants/config";
+import { getOpeningTimes, roundToNearestMinutes } from "~/utils/helpers";
+import { DateTime } from "~/utils/types";
 
-interface indexProps {
-  date: DateTime;
-  setDate: Dispatch<SetStateAction<DateTime>>;
-}
 interface CalendarProps {
   days: Day[];
   closedDays: string[]; // as ISO strings
@@ -35,7 +22,7 @@ const Calendar: FC<CalendarProps> = ({ days, closedDays }) => {
   const tooLate = !isBefore(rounded, closing);
   if (tooLate) closedDays.push(formatISO(new Date().setHours(0, 0, 0, 0)));
 
-  const [date, setDate] = useState<Datetime>({
+  const [date, setDate] = useState<DateTime>({
     justDate: null,
     dateTime: null,
   });

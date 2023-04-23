@@ -3,6 +3,7 @@ import Calendar from "~/components/Calendar";
 import { formatISO } from "date-fns";
 import { type NextPage } from "next";
 import { prisma } from "~/server/db";
+import { Day } from "@prisma/client";
 
 interface HomeProps {
   days: Day[];

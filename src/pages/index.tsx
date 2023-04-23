@@ -2,17 +2,26 @@
 
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type DateTime } from "@types";
 import Spinner from "~/components/Spinner";
-import CalendarComponent from "~/components/Calendar";
+import Calendar from "~/components/Calendar";
 import Menu from "~/components/Menu";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const [date, setDate] = useState<DateTime>({
     justDate: null,
     dateTime: null,
   });
+
+  useEffect(() => {
+    if (date.dateTime) checkMenuStatus()
+  }, [date])
+  
+
+  // tRPC
+  const { mutate: checkMenuStatus, isSuccess } = api.menu.checkMenuStatus.useMutation()
 
   return (
     <>
@@ -23,8 +32,8 @@ const Home: NextPage = () => {
       </Head>
 
       <main>
-        {!date.dateTime && <CalendarComponent setDate={setDate} date={date} />}
-        {date.dateTime && true ? (
+        {!date.dateTime && <Calendar setDate={setDate} date={date} />}
+        {date.dateTime && isSuccess? (
           <Menu />
         ) : (
           <div className="flex h-screen items-center justify-center">

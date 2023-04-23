@@ -13,7 +13,7 @@ interface DateType {
   dateTime: Date | null;
 }
 
-const CalendarComponent: FC<indexProps> = ({ setDate, date}) => {
+const Calendar: FC<indexProps> = ({ setDate, date}) => {
 
 
   const getTimes = () => {
@@ -63,4 +63,4 @@ const CalendarComponent: FC<indexProps> = ({ setDate, date}) => {
   );
 };
 
-export default CalendarComponent
+export default Calendar

@@ -28,6 +28,6 @@ export const menuRouter = createTRPCRouter({
         // Handle menu checking logic
         await sleep(1000)
 
-        return true
+        return { success: true }
     })
 })

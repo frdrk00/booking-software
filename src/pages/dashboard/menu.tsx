@@ -9,8 +9,6 @@ import { Categories } from "~/utils/types";
 
 const DynamicSelect = dynamic(() => import("react-select"), { ssr: false });
 
-interface menuProps {}
-
 type Input = {
   name: string;
   price: number;
@@ -25,16 +23,18 @@ const initialInput = {
   file: undefined,
 };
 
-const menu: FC<menuProps> = ({}) => {
+const Menu: FC = ({}) => {
   const [input, setInput] = useState<Input>(initialInput);
   const [preview, setPreview] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { mutateAsync: deleteMenuItem} = api.admin.deleteMenuItem.useMutation()
 
   // tRPC
-  const { mutateAsync: createPresignedUrl } = api.admin.createPresignedUrl.useMutation()
-  const { mutateAsync: addItem } = api.admin.addMenuItem.useMutation()
-  const { data: menuItems, refetch } = api.menu.getMenuItems.useQuery()
+  const { mutateAsync: createPresignedUrl } =
+    api.admin.createPresignedUrl.useMutation();
+  const { mutateAsync: addItem } = api.admin.addMenuItem.useMutation();
+  const { data: menuItems, refetch } = api.menu.getMenuItems.useQuery();
+  const { mutateAsync: deleteMenuItem } =
+    api.admin.deleteMenuItem.useMutation();
 
   useEffect(() => {
     // create the preview
@@ -48,53 +48,58 @@ const menu: FC<menuProps> = ({}) => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return setError("No file selected");
-    if (e.target.files[0].size > MAX_FILE_SIZE) return setError("File size is too big");
-    setInput((prev) => ({ ...prev, file: e.target.files![0] }))
+    if (e.target.files[0].size > MAX_FILE_SIZE)
+      return setError("File size is too big");
+    setInput((prev) => ({ ...prev, file: e.target.files![0] }));
   };
 
   const handleImageUpload = async () => {
-    const  { file } = input
-    if (!file) return
+    const { file } = input;
+    if (!file) return;
 
-    const { fields, key, url } = await createPresignedUrl({ fileType: file.type })
+    const { fields, key, url } = await createPresignedUrl({
+      fileType: file.type,
+    });
 
     const data = {
       ...fields,
-      'Content-Type': fields.type,
-      file
-    }
+      "Content-Type": file.type,
+      file,
+    };
 
-    const formData = new FormData
+    const formData = new FormData();
 
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, value as any)
-    })
+      formData.append(key, value as any);
+    });
 
     await fetch(url, {
-      method: 'POST',
+      method: "POST",
       body: formData,
-    })
+    });
 
-    return key
-  }
+    return key;
+  };
 
   const addMenuItem = async () => {
-    const key = await handleImageUpload()
-    if(!key) throw new Error('No key')
+    const key = await handleImageUpload();
+    if (!key) throw new Error("No key");
 
     await addItem({
-      name: input.name,
       imageKey: key,
-      categories: input.categories.map((c) => c.value as Exclude<Categories, 'all'>),
+      name: input.name,
+      categories: input.categories.map(
+        (c) => c.value as Exclude<Categories, "all">
+      ),
       price: input.price,
-    })
+    });
 
-    refetch()
+    refetch();
 
     // Reset input
-    setInput(initialInput)
-    setPreview('')
-  }
+    setInput(initialInput);
+    setPreview("");
+  };
 
   const handleDelete = async (imageKey: string, id: string) => {
     await deleteMenuItem({ imageKey, id });
@@ -110,7 +115,9 @@ const menu: FC<menuProps> = ({}) => {
             className="h-12 rounded-sm border-none bg-gray-200"
             type="text"
             placeholder="name"
-            onChange={(e) => setInput((prev) => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setInput((prev) => ({ ...prev, name: e.target.value }))
+            }
             value={input.name}
           />
 
@@ -180,7 +187,15 @@ const menu: FC<menuProps> = ({}) => {
               <div key={menuItem.id}>
                 <p>{menuItem.name}</p>
                 <div className="relative h-40 w-40">
-                  <Image priority fill alt="" src={menuItem.url} />
+                  <Image
+                    src={menuItem.url}
+                    priority
+                    sizes="100vw"
+                    alt=""
+                    width="0"
+                    height="0"
+                    className="h-full w-full"
+                  />
                 </div>
                 <button
                   onClick={() => handleDelete(menuItem.imageKey, menuItem.id)}
@@ -197,4 +212,4 @@ const menu: FC<menuProps> = ({}) => {
   );
 };
 
-export default menu;
+export default Menu;

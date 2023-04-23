@@ -10,22 +10,24 @@ export const menuRouter = createTRPCRouter({
 
         // Each menu item only contains its AWS key. Extend all items with their actual img url
         const withUrls = await Promise.all(
-            menuItems.map(async (menuItem) => ({
-                ...menuItem,
-                url: await s3.getSignedUrlPromise('getObject', {
-                    Bucket: 'reservation-software',
-                    Key: menuItem.imageKey,
+            menuItems.map(async (menuItem) => {
+                return {
+                    ...menuItem,
+                    url: await s3.getSignedUrlPromise('getObject', {
+                        Bucket: 'reservation-soft',
+                        Key: menuItem.imageKey,
                 }),
-            }))
+                }
+            })
         )
 
         return withUrls
     }),
 
-    checkMenuStatus: publicProcedure.mutation( async () => {
+    checkMenuStatus: publicProcedure.query( async () => {
         // Handle menu checking logic
         await sleep(1000)
 
-        return { success: true}
+        return true
     })
 })

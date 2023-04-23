@@ -37,31 +37,31 @@ export const adminRouter = createTRPCRouter({
       })
     }),
 
-    createPresignedUrl: adminProcedure.input(z.object({fileType: z.string()})).mutation(async ({input}) => {
-      const id = nanoid()
-      const ex = input.fileType.split('/')[1]
-      const key = `${id}.${ex}`
+  createPresignedUrl: adminProcedure.input(z.object({ fileType: z.string() })).mutation(async ({ input }) => {
+    const id = nanoid()
+    const ex = input.fileType.split('/')[1]
+    const key = `${id}.${ex}`
 
-      const { url, fields} = await new Promise((resolve, reject) => {
-        s3.createPresignedPost({
-          Bucket: 'reservation-software',
-          Fields: {key},
+    const { url, fields } = (await new Promise((resolve, reject) => {
+      s3.createPresignedPost(
+        {
+          Bucket: 'reservation-soft',
+          Fields: { key },
           Expires: 60,
           Conditions: [
             ['content-length-range', 0, MAX_FILE_SIZE],
             ['starts-with', '$Content-Type', 'image/'],
-          ]
+          ],
         },
-        
-        (err, data) => {
+        (err, signed) => {
           if (err) return reject(err)
-          resolve(data)
+          resolve(signed)
         }
-        )
-      }) as any as { url: string; fields: any }
+      )
+    })) as any as { url: string; fields: any }
 
-      return { url, fields, key }
-    }),
+    return { url, fields, key }
+  }),
 
     addMenuItem: adminProcedure.input(z.object({
       name: z.string(),
@@ -89,7 +89,7 @@ export const adminRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Delete image from s3
       const { imageKey, id } = input
-      await s3.deleteObject({ Bucket: 'reservation-software', Key: imageKey }).promise()
+      await s3.deleteObject({ Bucket: 'reservation-soft', Key: imageKey }).promise()
 
       // Delete image from db
       await ctx.prisma.menuItem.delete({ where: { id } })

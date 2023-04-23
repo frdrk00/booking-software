@@ -24,10 +24,10 @@ export const menuRouter = createTRPCRouter({
         return withUrls
     }),
 
-    checkMenuStatus: publicProcedure.mutation( async () => {
+    checkMenuStatus: publicProcedure.query( async () => {
         // Handle menu checking logic
         await sleep(1000)
 
-        return {success: true}
+        return true
     })
 })

@@ -1,16 +1,27 @@
+import { Button } from "@chakra-ui/react";
 import { type FC, useState } from "react";
 import { api } from "~/utils/api";
-import Select from "react-select/dist/declarations/src/Select";
+import Select from "react-select";
 import { capitalize, selectOptions } from "~/utils/helpers";
 import Image from "next/image";
 import { HiArrowLeft } from "react-icons/hi";
+import { useRouter } from "next/router";
+import { format, parseISO } from "date-fns";
 
-interface MenuProps {}
+interface MenuProps {
+  selectedTime: string; // as ISO string
+  addToCart: (id: string, quantity: number) => void;
+}
 
-const Menu: FC<MenuProps> = ({}) => {
-  const { data: menuItems } = api.menu.getMenuItems.useQuery()
-  const [ filter, setFilter ] = useState<undefined | string>('')
+const Menu: FC<MenuProps> = ({ selectedTime, addToCart }) => {
+  const router = useRouter();
+  const { data: menuItems } = api.menu.getMenuItems.useQuery();
+  const [filter, setFilter] = useState<undefined | string>("");
 
+  const filteredMenuItems = menuItems?.filter((menuItem) => {
+    if (!filter) return true;
+    return menuItem.categories.includes(filter);
+  });
 
   return (
     <div className="bg-white">

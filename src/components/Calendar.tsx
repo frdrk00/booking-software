@@ -1,61 +1,78 @@
-import { FC, Dispatch, SetStateAction} from "react";
+import { FC, Dispatch, SetStateAction, useState, useEffect } from "react";
 import ReactCalendar from "react-calendar";
-import { add, format } from "date-fns";
-import { INTERVAL, STORE_CLOSING_TIME, STORE_OPENING_TIME } from "~/constants/config";
-import { type DateTime } from '@types'
+import {
+  add,
+  format,
+  formatISO,
+  isBefore,
+  roundToNearestMinutes,
+  parse,
+} from "date-fns";
+import {
+  INTERVAL,
+  STORE_CLOSING_TIME,
+  STORE_OPENING_TIME,
+} from "~/constants/config";
+import { type DateTime } from "@types";
+import { useRouter } from "next/router";
 
 interface indexProps {
-  date: DateTime
-  setDate: Dispatch<SetStateAction<DateTime>>
+  date: DateTime;
+  setDate: Dispatch<SetStateAction<DateTime>>;
 }
-interface DateType {
-  justDate: Date | null;
-  dateTime: Date | null;
+interface CalendarProps {
+  days: Day[];
+  closedDays: string[]; // as ISO strings
 }
 
-const Calendar: FC<indexProps> = ({ setDate, date}) => {
+const Calendar: FC<CalendarProps> = ({ days, closedDays }) => {
+  const router = useRouter();
 
+  //Determine if todays is closed
+  const today = days.find((d) => d.dayOfWeek === now.getDay());
+  const rounded = roundToNearestMinutes(now, OPENING_HOURS_INTERVAL);
+  const closing = parse(today!.closeTime, "kk:mm", now);
+  const tooLate = !isBefore(rounded, closing);
+  if (tooLate) closedDays.push(formatISO(new Date().setHours(0, 0, 0, 0)));
 
-  const getTimes = () => {
-    if(!date.justDate) return
+  const [date, setDate] = useState<Datetime>({
+    justDate: null,
+    dateTime: null,
+  });
 
-    const { justDate } = date
-
-    const beginning = add(justDate, { hours: STORE_OPENING_TIME })
-    const end = add(justDate, { hours: STORE_CLOSING_TIME })
-    const interval = INTERVAL // in minutes
-
-    const times = []
-    for (let i = beginning; i <= end; i = add(i, { minutes: interval })) {
-        times.push(i)
+  useEffect(() => {
+    if (date.dateTime) {
+      localStorage.setItem("selectedTime", date.dateTime.toISOString());
+      router.push("/menu");
     }
+  }, [date.dateTime]);
 
-    return times
-  }
-
-  /* console log */
-  console.log(date.dateTime);
-  
-  const times = getTimes()
+  const times = date.justDate && getOpeningTimes(date.justDate, days);
 
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       {date.justDate ? (
         <div className="flex gap-4">
-            {times?.map(( time, i ) => (
-                <div key={`time-${i}`} className="rounded-sm bg-gray-100 p-2">
-                    <button type="button" onClick={() => setDate((prev) => ({ ...prev, dateTime: time }))} >
-                        {format(time, 'kk:mm')}
-                    </button>
-                </div>
-            ))}
+          {times?.map((time, i) => (
+            <div key={`time-${i}`} className="rounded-sm bg-gray-100 p-2">
+              <button
+                type="button"
+                onClick={() => setDate((prev) => ({ ...prev, dateTime: time }))}
+              >
+                {format(time, "kk:mm")}
+              </button>
+            </div>
+          ))}
         </div>
       ) : (
         <ReactCalendar
           minDate={new Date()}
           className="REACT-CALENDAR p-2"
           view="month"
-          onClickDay={(date) => setDate((prev) => ({ ...prev, justDate: date }))}
+          tileDisabled={({ date }) => closedDays.includes(formatISO(date))}
+          onClickDay={(date) =>
+            setDate((prev) => ({ ...prev, justDate: date }))
+          }
           locale="en"
         />
       )}
@@ -63,4 +80,4 @@ const Calendar: FC<indexProps> = ({ setDate, date}) => {
   );
 };
 
-export default Calendar
+export default Calendar;

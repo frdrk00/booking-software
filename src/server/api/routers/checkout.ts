@@ -65,8 +65,8 @@ export const checkoutRouter = createTRPCRouter({
               },
             },
           ],
-          success_url: `http://localhost:3000/success`,
-          cancel_url: `http://localhost:3000/menu`,
+          success_url: `http://booking-system-beta-one.vercel.app/success`,
+          cancel_url: `http://booking-system-beta-one.vercel.app/menu`,
         })
 
         return {
